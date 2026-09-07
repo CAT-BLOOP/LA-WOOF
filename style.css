@@ -1,0 +1,59 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background: #0f0f1a;
+  color: #fff;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.menu-container {
+  text-align: center;
+  background: #1a1a2e;
+  padding: 3rem 4rem;
+  border-radius: 12px;
+  box-shadow: 0 0 25px rgba(0, 255, 204, 0.2);
+  border: 1px solid rgba(0, 255, 204, 0.3);
+}
+
+.game-title {
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+  letter-spacing: 4px;
+  color: #00ffcc;
+  text-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
+}
+
+.menu-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  width: 220px;
+  margin: 0 auto;
+}
+
+.btn {
+  padding: 0.8rem 1.5rem;
+  color: #fff;
+  text-decoration: none;
+  background: #16213e;
+  border: 1px solid #00ffcc;
+  border-radius: 6px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn:hover {
+  background: #00ffcc;
+  color: #0f0f1a;
+  box-shadow: 0 0 15px #00ffcc;
+  transform: translateY(-2px);
+}
