@@ -94,6 +94,9 @@ body {
 }
 
 .btn {
+  display: inline-block;
+  text-decoration: none;
+  /* Keep all your other existing .btn styles below */
   width: 100%;
   padding: 0.6rem;
   color: #fff;
@@ -101,7 +104,7 @@ body {
   border: 1px solid #00ffcc;
   border-radius: 6px;
   font-weight: bold;
-  cursor: pointer;
+  text-align: center;
   transition: all 0.2s ease;
 }
 
