@@ -3,18 +3,52 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Game Hub</title>
+  <title>Arcade Hub</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main class="menu-container">
+
+  <!-- Top bar with coin counter -->
+  <header class="top-bar">
+    <div class="coin-display">
+      <span class="coin-icon">🪙</span>
+      <span class="coin-count">100</span>
+    </div>
+  </header>
+
+  <!-- Main Game Hub Container -->
+  <main class="container">
     <h1 class="game-title">ARCADE HUB</h1>
-    <nav class="menu-nav">
-      <a href="#play" class="btn">Play Games</a>
-      <a href="#leaderboard" class="btn">Leaderboard</a>
-      <a href="#settings" class="btn">Settings</a>
-      <a href="#about" class="btn">About</a>
-    </nav>
+
+    <!-- 2-Column Game Grid -->
+    <section class="game-grid">
+      
+      <div class="game-card">
+        <div class="game-thumb">🎮</div>
+        <h3>Game Title 1</h3>
+        <button class="btn">Play</button>
+      </div>
+
+      <div class="game-card">
+        <div class="game-thumb">🎯</div>
+        <h3>Game Title 2</h3>
+        <button class="btn">Play</button>
+      </div>
+
+      <div class="game-card">
+        <div class="game-thumb">👾</div>
+        <h3>Game Title 3</h3>
+        <button class="btn">Play</button>
+      </div>
+
+      <div class="game-card">
+        <div class="game-thumb">🚀</div>
+        <h3>Game Title 4</h3>
+        <button class="btn">Play</button>
+      </div>
+
+    </section>
   </main>
+
 </body>
 </html>
