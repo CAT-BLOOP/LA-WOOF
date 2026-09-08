@@ -8,19 +8,47 @@
 body {
   background: #0f0f1a;
   color: #fff;
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
 }
 
-.menu-container {
-  text-align: center;
+/* Position coin counter top right */
+.top-bar {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  padding: 1.5rem 2rem;
+}
+
+.coin-display {
   background: #1a1a2e;
-  padding: 3rem 4rem;
-  border-radius: 12px;
-  box-shadow: 0 0 25px rgba(0, 255, 204, 0.2);
-  border: 1px solid rgba(0, 255, 204, 0.3);
+  border: 1px solid #ffcc00;
+  border-radius: 20px;
+  padding: 0.4rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 0 10px rgba(255, 204, 0, 0.3);
+}
+
+.coin-icon {
+  font-size: 1.2rem;
+}
+
+.coin-count {
+  color: #ffcc00;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+/* Main Hub Layout */
+.container {
+  width: 90%;
+  max-width: 800px;
+  text-align: center;
+  padding-bottom: 3rem;
 }
 
 .game-title {
@@ -31,29 +59,61 @@ body {
   text-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
 }
 
-.menu-nav {
+/* 2 items per row grid */
+.game-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+/* Individual Game Cards */
+.game-card {
+  background: #1a1a2e;
+  border: 1px solid rgba(0, 255, 204, 0.3);
+  border-radius: 12px;
+  padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 1.2rem;
-  width: 220px;
-  margin: 0 auto;
+  align-items: center;
+  gap: 1rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.game-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 0 20px rgba(0, 255, 204, 0.3);
+  border-color: #00ffcc;
+}
+
+.game-thumb {
+  font-size: 3rem;
+  background: #16213e;
+  width: 100%;
+  padding: 1.5rem 0;
+  border-radius: 8px;
 }
 
 .btn {
-  padding: 0.8rem 1.5rem;
+  width: 100%;
+  padding: 0.6rem;
   color: #fff;
-  text-decoration: none;
   background: #16213e;
   border: 1px solid #00ffcc;
   border-radius: 6px;
   font-weight: bold;
-  letter-spacing: 1px;
-  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .btn:hover {
   background: #00ffcc;
   color: #0f0f1a;
-  box-shadow: 0 0 15px #00ffcc;
-  transform: translateY(-2px);
+  box-shadow: 0 0 10px #00ffcc;
+}
+
+/* Fallback to 1 column on small phone screens */
+@media (max-width: 500px) {
+  .game-grid {
+    grid-template-columns: 1fr;
+  }
 }
