@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dinosaur Game</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f7f7f7;
+            font-family: Arial, sans-serif;
+            user-select: none;
+        }
+
+        /* Top Left Navigation Button */
+        #back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #fff;
+            background-color: #535353;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 0.2s ease;
+        }
+
+        #back-btn:hover {
+            background-color: #333;
+        }
+
+        #game-container {
+            position: relative;
+            width: 600px;
+            height: 200px;
+            background-color: #fff;
+            border-bottom: 2px solid #333;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        #dino {
+            position: absolute;
+            bottom: 0px;
+            left: 50px;
+            width: 40px;
+            height: 43px;
+            background-color: #535353;
+            border-radius: 4px;
+        }
+
+        /* Eye and snout for dino */
+        #dino::after {
+            content: '';
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 6px;
+            height: 6px;
+            background-color: #fff;
+        }
+
+        .cactus {
+            position: absolute;
+            bottom: 0px;
+            width: 20px;
+            height: 40px;
+            background-color: #2e7d32;
+            border-radius: 3px 3px 0 0;
+        }
+
+        #score {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #535353;
+        }
+
+        #game-over {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #535353;
+        }
+
+        #game-over h1 {
+            margin: 0 0 10px 0;
+            font-size: 24px;
+        }
+
+        #game-over p {
+            margin: 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Left Button to Index -->
+    <a href="index.html" id="back-btn">← Back to Index</a>
+
+    <p>Press <b>SPACEBAR</b> or <b>UP ARROW</b> to jump!</p>
+
+    <div id="game-container">
+        <div id="score">Score: 0</div>
+        <div id="dino"></div>
+        <div id="game-over">
+            <h1>GAME OVER</h1>
+            <p>Press Space to Restart</p>
+        </div>
+    </div>
+
+    <script>
+        const dino = document.getElementById('dino');
+        const gameContainer = document.getElementById('game-container');
+        const scoreDisplay = document.getElementById('score');
+        const gameOverDisplay = document.getElementById('game-over');
+
+        let isJumping = false;
+        let isGameOver = false;
+        let score = 0;
+        let scoreInterval;
+        let cactusTimeout;
+
+        // Jump Controls
+        document.addEventListener('keydown', function(event) {
+            if (event.code === 'Space' || event.code === 'ArrowUp') {
+                if (isGameOver) {
+                    resetGame();
+                } else if (!isJumping) {
+                    jump();
+                }
+            }
+        });
+
+        function jump() {
+            let position = 0;
+            isJumping = true;
+
+            let upInterval = setInterval(() => {
+                if (position >= 100) {
+                    clearInterval(upInterval);
+
+                    let downInterval = setInterval(() => {
+                        if (position <= 0) {
+                            clearInterval(downInterval);
+                            isJumping = false;
+                        }
+                        position -= 5;
+                        position = Math.max(0, position);
+                        dino.style.bottom = position + 'px';
+                    }, 20);
+
+                }
+                position += 8;
+                dino.style.bottom = position + 'px';
+            }, 20);
+        }
+
+        function createCactus() {
+            if (isGameOver) return;
+
+            const cactus = document.createElement('div');
+            cactus.classList.add('cactus');
+            gameContainer.appendChild(cactus);
+
+            let cactusPosition = 600;
+            cactus.style.left = cactusPosition + 'px';
+
+            let timer = setInterval(() => {
+                let dinoBottom = parseInt(window.getComputedStyle(dino).getPropertyValue('bottom'));
+                
+                // Collision Detection
+                if (cactusPosition > 50 && cactusPosition < 90 && dinoBottom < 40) {
+                    clearInterval(timer);
+                    endGame();
+                }
+
+                cactusPosition -= 6;
+                cactus.style.left = cactusPosition + 'px';
+
+                if (cactusPosition < -20) {
+                    clearInterval(timer);
+                    cactus.remove();
+                }
+            }, 20);
+
+            let randomTime = Math.random() * (2000 - 1000) + 1000;
+            if (!isGameOver) {
+                cactusTimeout = setTimeout(createCactus, randomTime);
+            }
+        }
+
+        function startGame() {
+            isGameOver = false;
+            score = 0;
+            scoreDisplay.innerText = 'Score: ' + score;
+            gameOverDisplay.style.display = 'none';
+
+            scoreInterval = setInterval(() => {
+                score++;
+                scoreDisplay.innerText = 'Score: ' + score;
+            }, 100);
+
+            createCactus();
+        }
+
+        function endGame() {
+            isGameOver = true;
+            clearInterval(scoreInterval);
+            clearTimeout(cactusTimeout);
+            gameOverDisplay.style.display = 'block';
+
+            document.querySelectorAll('.cactus').forEach(c => c.remove());
+        }
+
+        function resetGame() {
+            dino.style.bottom = '0px';
+            startGame();
+        }
+
+        startGame();
+    </script>
+</body>
+</html>
