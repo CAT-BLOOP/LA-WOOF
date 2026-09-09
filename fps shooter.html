@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1st Person 3D Shooter</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+            background-color: #000;
+        }
+
+        /* Top Left Navigation Button */
+        #back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #fff;
+            background-color: rgba(83, 83, 83, 0.8);
+            border: 2px solid #fff;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            z-index: 100;
+            transition: background-color 0.2s ease;
+        }
+
+        #back-btn:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Crosshair in center */
+        #crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 10px;
+            height: 10px;
+            margin-top: -5px;
+            margin-left: -5px;
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* UI overlay for score */
+        #ui {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: #fff;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px #000;
+            z-index: 10;
+        }
+
+        /* Click to Start Overlay */
+        #instructions {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            font-size: 24px;
+            z-index: 20;
+            cursor: pointer;
+        }
+
+        #instructions h1 {
+            margin: 0 0 10px 0;
+        }
+
+        #instructions p {
+            font-size: 16px;
+            color: #ccc;
+        }
+    </style>
+    <!-- Three.js CDN Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+    <!-- Back Button to Index -->
+    <a href="index.html" id="back-btn">← Back to Index</a>
+
+    <div id="crosshair"></div>
+    <div id="ui">Score: <span id="score">0</span></div>
+
+    <div id="instructions">
+        <h1>CLICK TO PLAY</h1>
+        <p>Use <b>WASD</b> to move | <b>MOUSE</b> to look | <b>LEFT CLICK</b> to shoot</p>
+    </div>
+
+    <script>
+        // --- SCENE SETUP ---
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x87ceeb); // Sky blue
+        scene.fog = new THREE.FogExp2(0x87ceeb, 0.015);
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        document.body.appendChild(renderer.domElement);
+
+        // --- LIGHTING ---
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(20, 40, 20);
+        dirLight.castShadow = true;
+        scene.add(dirLight);
+
+        // --- ENVIRONMENT ---
+        const floorGeo = new THREE.PlaneGeometry(200, 200);
+        const floorMat = new THREE.MeshStandardMaterial({ color: 0x33aa33 });
+        const floor = new THREE.Mesh(floorGeo, floorMat);
+        floor.rotation.x = -Math.PI / 2;
+        floor.receiveShadow = true;
+        scene.add(floor);
+
+        // Create decorative obstacles
+        for (let i = 0; i < 20; i++) {
+            const pillarGeo = new THREE.BoxGeometry(2, 10, 2);
+            const pillarMat = new THREE.MeshStandardMaterial({ color: 0x888888 });
+            const pillar = new THREE.Mesh(pillarGeo, pillarMat);
+            pillar.position.set(
+                (Math.random() - 0.5) * 100,
+                5,
+                (Math.random() - 0.5) * 100
+            );
+            pillar.castShadow = true;
+            pillar.receiveShadow = true;
+            scene.add(pillar);
+        }
+
+        // --- CONTROLS ---
+        let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
+        let prevTime = performance.now();
+        const velocity = new THREE.Vector3();
+        const direction = new THREE.Vector3();
+
+        const instructions = document.getElementById('instructions');
+        let isLocked = false;
+
+        let pitch = 0;
+        let yaw = 0;
+
+        instructions.addEventListener('click', () => {
+            document.body.requestPointerLock();
+        });
+
+        document.addEventListener('pointerlockchange', () => {
+            if (document.pointerLockElement === document.body) {
+                isLocked = true;
+                instructions.style.display = 'none';
+            } else {
+                isLocked = false;
+                instructions.style.display = 'flex';
+            }
+        });
+
+        document.addEventListener('mousemove', (event) => {
+            if (!isLocked) return;
+
+            const movementX = event.movementX || 0;
+            const movementY = event.movementY || 0;
+
+            yaw -= movementX * 0.002;
+            pitch -= movementY * 0.002;
+
+            pitch = Math.max(-Math.PI / 2 + 0.01, Math.min(Math.PI / 2 - 0.01, pitch));
+
+            camera.rotation.set(0, 0, 0);
+            camera.rotation.y = yaw;
+            camera.rotation.x = pitch;
+            camera.rotation.order = 'YXZ';
+        });
+
+        const onKeyDown = (event) => {
+            switch (event.code) {
+                case 'KeyW': case 'ArrowUp': moveForward = true; break;
+                case 'KeyA': case 'ArrowLeft': moveLeft = true; break;
+                case 'KeyS': case 'ArrowDown': moveBackward = true; break;
+                case 'KeyD': case 'ArrowRight': moveRight = true; break;
+            }
+        };
+
+        const onKeyUp = (event) => {
+            switch (event.code) {
+                case 'KeyW': case 'ArrowUp': moveForward = false; break;
+                case 'KeyA': case 'ArrowLeft': moveLeft = false; break;
+                case 'KeyS': case 'ArrowDown': moveBackward = false; break;
+                case 'KeyD': case 'ArrowRight': moveRight = false; break;
+            }
+        };
+
+        document.addEventListener('keydown', onKeyDown);
+        document.addEventListener('keyup', onKeyUp);
+
+        camera.position.set(0, 2, 0);
+
+        // --- TARGETS AND SHOOTING ---
+        const targets = [];
+        let score = 0;
+        const scoreDisplay = document.getElementById('score');
+
+        function createTarget() {
+            const targetGeo = new THREE.SphereGeometry(1.2, 32, 32);
+            const targetMat = new THREE.MeshStandardMaterial({ color: 0xff2222, roughness: 0.3 });
+            const target = new THREE.Mesh(targetGeo, targetMat);
+
+            target.position.set(
+                (Math.random() - 0.5) * 60,
+                1.5 + Math.random() * 5,
+                (Math.random() - 0.5) * 60
+            );
+
+            target.castShadow = true;
+            scene.add(target);
+            targets.push(target);
+        }
+
+        for (let i = 0; i < 10; i++) {
+            createTarget();
+        }
+
+        const raycaster = new THREE.Raycaster();
+
+        document.addEventListener('mousedown', (event) => {
+            if (!isLocked || event.button !== 0) return;
+
+            raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+            const intersects = raycaster.intersectObjects(targets);
+
+            if (intersects.length > 0) {
+                const hitObject = intersects[0].object;
+
+                scene.remove(hitObject);
+                const index = targets.indexOf(hitObject);
+                if (index > -1) targets.splice(index, 1);
+
+                score += 10;
+                scoreDisplay.innerText = score;
+
+                createTarget();
+            }
+        });
+
+        // --- GAME LOOP ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const time = performance.now();
+
+            if (isLocked) {
+                const delta = (time - prevTime) / 1000;
+
+                velocity.x -= velocity.x * 10.0 * delta;
+                velocity.z -= velocity.z * 10.0 * delta;
+
+                direction.z = Number(moveForward) - Number(moveBackward);
+                direction.x = Number(moveRight) - Number(moveLeft);
+                direction.normalize();
+
+                if (moveForward || moveBackward) velocity.z -= direction.z * 100.0 * delta;
+                if (moveLeft || moveRight) velocity.x -= direction.x * 100.0 * delta;
+
+                const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+                forward.y = 0;
+                forward.normalize();
+
+                const side = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
+                side.y = 0;
+                side.normalize();
+
+                camera.position.addScaledVector(forward, -velocity.z * delta);
+                camera.position.addScaledVector(side, -velocity.x * delta);
+
+                camera.position.y = 2;
+            }
+
+            targets.forEach((target, index) => {
+                target.position.y += Math.sin(time * 0.003 + index) * 0.005;
+            });
+
+            prevTime = time;
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        animate();
+    </script>
+</body>
+</html>
